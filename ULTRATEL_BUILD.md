@@ -64,7 +64,7 @@ extraídos do APK: secrets protegem o repositório e os logs, não o binário.
 
 ## 3. Compilar depois de configurar os secrets
 
-No GitHub, abra **Actions → UltraTel Android - APK → Run workflow**,
+No GitHub, abra **Actions → Android APK - teste** (nome ainda exibido na branch principal) **→ Run workflow**,
 selecionando a branch `feature/ultratel-firebase-20261113`
 enquanto o PR ainda estiver em rascunho.
 
