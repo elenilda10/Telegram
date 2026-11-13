@@ -134,7 +134,7 @@ jobs:
           pathlib.Path('ultratel-update.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
           pathlib.Path('ultratel.apk').write_bytes(apk.read_bytes())
           with open(os.environ['GITHUB_ENV'], 'a') as f:
-              f.write('ULTRATEL_RELEASE_TAG=' + tag + '\\n')
+              f.write('ULTRATEL_RELEASE_TAG=' + tag + '\n')
           print('Release:', tag, 'SHA-256:', sha)
           PY
 
@@ -148,7 +148,7 @@ jobs:
             echo "Esta versão já foi publicada; aumente APP_VERSION_CODE antes de lançar outra atualização."
             exit 1
           fi
-          gh release create "$ULTRATEL_RELEASE_TAG" ultratel.apk ultratel-update.json \\
+          gh release create "$ULTRATEL_RELEASE_TAG" ultratel.apk ultratel-update.json \
             --title "UltraTel $ULTRATEL_RELEASE_TAG" \\
-            --notes "$RELEASE_NOTES" \\
+            --notes "$RELEASE_NOTES" \
             --latest
