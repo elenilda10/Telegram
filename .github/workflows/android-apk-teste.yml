@@ -149,6 +149,6 @@ jobs:
             exit 1
           fi
           gh release create "$ULTRATEL_RELEASE_TAG" ultratel.apk ultratel-update.json \
-            --title "UltraTel $ULTRATEL_RELEASE_TAG" \\
+            --title "UltraTel $ULTRATEL_RELEASE_TAG" \
             --notes "$RELEASE_NOTES" \
             --latest
