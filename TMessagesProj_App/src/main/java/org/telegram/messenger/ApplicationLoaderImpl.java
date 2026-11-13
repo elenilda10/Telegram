@@ -19,7 +19,7 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
             @Override public void onActivityCreated(Activity activity, Bundle state) {}
             @Override public void onActivityStarted(Activity activity) {}
             @Override public void onActivityResumed(Activity activity) {
-                if (activity instanceof org.telegram.ui.LaunchActivity) {
+                if ("org.telegram.ui.LaunchActivity".equals(activity.getClass().getName())) {
                     UltraTelUpdater.check(activity, false);
                 }
             }
