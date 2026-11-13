@@ -7,6 +7,19 @@ O APK **não deve ser instalado ou distribuído** até que as credenciais própr
 a assinatura e os demais componentes necessários tenham sido verificados.
 Nunca ignore alertas de segurança apenas porque o APK compilou.
 
+## Ícone do aplicativo (uma imagem apenas)
+
+1. Baixe o PNG preparado `ultratel-launcher.png` na conversa.
+2. Na branch `feature/ultratel-firebase-20261113`, abra
+   [branding](branding/README.md) no GitHub.
+3. Toque em **Add file → Upload files**, selecione o PNG e confirme o commit
+   nessa mesma branch. O caminho final deve ser `branding/ultratel-launcher.png`.
+4. O workflow instala Pillow e executa `scripts/install_ultratel_icon.py`
+   para gerar todos os ícones necessários ao Android automaticamente.
+
+A compilação falhará imediatamente com uma mensagem clara se esse PNG
+não tiver sido adicionado. **Não envie chaves, hashes ou senhas como arquivos.**
+
 ## 1. Criar assinatura Android no Termux (uma única vez)
 
 Execute **no seu próprio celular**, não no GitHub nem em uma conversa:
