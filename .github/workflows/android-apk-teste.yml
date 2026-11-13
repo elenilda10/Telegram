@@ -1,10 +1,21 @@
-name: Android APK - teste
+name: UltraTel Android - APK
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Publicar atualização para usuários do UltraTel'
+        type: boolean
+        required: true
+        default: false
+      release_notes:
+        description: 'Novidades da atualização'
+        type: string
+        required: false
+        default: 'Melhorias e correções do UltraTel'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: telegram-apk-test-${{ github.ref }}
@@ -12,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Compilar APK de teste
+    name: Compilar APK UltraTel
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
@@ -35,6 +46,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Preparar credenciais Telegram e assinatura própria
+        env:
+          ULTRATEL_API_ID: ${{ secrets.ULTRATEL_API_ID }}
+          ULTRATEL_API_HASH: ${{ secrets.ULTRATEL_API_HASH }}
+          ULTRATEL_KEYSTORE_B64: ${{ secrets.ULTRATEL_KEYSTORE_B64 }}
+          ULTRATEL_KEYSTORE_PASSWORD: ${{ secrets.ULTRATEL_KEYSTORE_PASSWORD }}
+        run: python3 scripts/prepare_ultratel_build.py
+
       - name: Localizar Android SDK pré-instalado
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
@@ -55,7 +74,10 @@ jobs:
       - name: Instalar dependências nativas
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build meson nasm gperf pkg-config unzip
+          sudo apt-get install -y ninja-build meson nasm gperf pkg-config unzip python3-pil
+
+      - name: Preparar icone do UltraTel
+        run: python3 scripts/install_ultratel_icon.py
 
       - name: Configurar Rust para Android
         run: |
@@ -67,10 +89,10 @@ jobs:
             x86_64-linux-android
           echo "RUSTUP_TOOLCHAIN=1.96.1" >> "$GITHUB_ENV"
 
-      - name: Compilar APK de teste (afatDebug)
+      - name: Compilar APK UltraTel (afatRelease)
         run: |
           chmod +x ./gradlew
-          ./gradlew :TMessagesProj_App:assembleAfatDebug \
+          ./gradlew :TMessagesProj_App:assembleAfatRelease \
             --no-daemon \
             --stacktrace \
             --max-workers=2 \
@@ -80,7 +102,53 @@ jobs:
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
-          name: telegram-android-apk-teste
-          path: TMessagesProj_App/build/outputs/apk/afat/debug/app.apk
+          name: ultratel-android-release
+          path: TMessagesProj_App/build/outputs/apk/afat/release/app.apk
           if-no-files-found: error
           retention-days: 7
+
+      - name: Preparar release e manifesto SHA-256
+        if: ${{ inputs.publish_release == true }}
+        env:
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re
+          props = pathlib.Path('gradle.properties').read_text()
+          def get(key):
+              m = re.search(r'^' + re.escape(key) + r'=(.*)$', props, re.M)
+              if not m: raise ValueError('Missing ' + key)
+              return m.group(1).strip()
+          code = int(get('APP_VERSION_CODE')) * 10 + 9
+          version = get('APP_VERSION_NAME')
+          tag = 'ultratel-v' + str(code)
+          apk = pathlib.Path('TMessagesProj_App/build/outputs/apk/afat/release/app.apk')
+          sha = hashlib.sha256(apk.read_bytes()).hexdigest()
+          manifest = {
+              'version_code': code,
+              'version': version,
+              'notes': os.environ.get('RELEASE_NOTES') or 'Melhorias e correções',
+              'sha256': sha,
+              'apk_url': f'https://github.com/elenilda10/Telegram/releases/download/{tag}/ultratel.apk',
+          }
+          pathlib.Path('ultratel-update.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2))
+          pathlib.Path('ultratel.apk').write_bytes(apk.read_bytes())
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write('ULTRATEL_RELEASE_TAG=' + tag + '\n')
+          print('Release:', tag, 'SHA-256:', sha)
+          PY
+
+      - name: Publicar GitHub Release
+        if: ${{ inputs.publish_release == true }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          if gh release view "$ULTRATEL_RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Esta versão já foi publicada; aumente APP_VERSION_CODE antes de lançar outra atualização."
+            exit 1
+          fi
+          gh release create "$ULTRATEL_RELEASE_TAG" ultratel.apk ultratel-update.json \
+            --title "UltraTel $ULTRATEL_RELEASE_TAG" \
+            --notes "$RELEASE_NOTES" \
+            --latest
