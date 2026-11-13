@@ -43,6 +43,11 @@ jobs:
           ULTRATEL_KEYSTORE_PASSWORD: ${{ secrets.ULTRATEL_KEYSTORE_PASSWORD }}
         run: python3 scripts/prepare_ultratel_build.py
 
+      - name: Preparar icone do UltraTel
+        run: |
+          python3 -m pip install --user Pillow
+          python3 scripts/install_ultratel_icon.py
+
       - name: Localizar Android SDK pré-instalado
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
