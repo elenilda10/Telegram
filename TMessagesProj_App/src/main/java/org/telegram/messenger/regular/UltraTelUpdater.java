@@ -192,7 +192,7 @@ public final class UltraTelUpdater {
             MAIN.post(() -> {
                 try {
                     Uri content = FileProvider.getUriForFile(activity,
-                        activity.getPackageName() + ".ultratel.updates", apk);
+                        activity.getPackageName() + ".provider", apk);
                     Intent install = new Intent(Intent.ACTION_VIEW);
                     install.setDataAndType(content, "application/vnd.android.package-archive");
                     install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
