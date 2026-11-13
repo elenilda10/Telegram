@@ -177,8 +177,7 @@ public final class UltraTelUpdater {
     }
 
     private static void verifyAndInstall(Activity activity, DownloadManager dm, long id, String sha) {
-        try (DownloadManager.Query query = new DownloadManager.Query().setFilterById(id);
-             android.database.Cursor cursor = dm.query(query)) {
+        try (android.database.Cursor cursor = dm.query(new DownloadManager.Query().setFilterById(id))) {
             if (cursor == null || !cursor.moveToFirst() ||
                 cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) != DownloadManager.STATUS_SUCCESSFUL) {
                 throw new Exception("Download incompleto");
