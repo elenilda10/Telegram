@@ -2930,6 +2930,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         if (statusDrawable == null || actionBar == null) {
             return;
         }
+        // Show the signed-in account's first name on the main chat screen.
+        // Keep UltraTel as the application name elsewhere and preserve Premium status.
+        if (folderId == 0 && communityId == 0 && !onlySelect) {
+            String accountName = user != null ? UserObject.getFirstName(user) : null;
+            actionBar.setTitle(accountName != null && !accountName.trim().isEmpty()
+                ? accountName : getString(R.string.AppName), statusDrawable);
+        }
         Long emojiStatusId = UserObject.getEmojiStatusDocumentId(user);
         statusDrawableGiftId = null;
         if (emojiStatusId != null) {
